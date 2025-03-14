@@ -1,7 +1,15 @@
+import io
 import tkinter as tk
-
+from tkinter import messagebox
 import pyqrcode
 from PIL import ImageTk, Image
+import logging
+
+logging.basicConfig(
+    filename="qr_generator.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class GUI:
@@ -12,6 +20,7 @@ class GUI:
         self.root.geometry("500x700")
         self.root.config(padx=10, pady=10)
 
+        # Create a canvas to place widgets.
         self.canvas = tk.Canvas(self.root, width=400, height=600)
         self.canvas.pack()
 
@@ -33,7 +42,7 @@ class GUI:
 
         self.generate_qr_button = tk.Button(
             self.root, text="Generate QR code", width=30,
-            command=lambda: self.generate_gr(self.name_entry.get(), self.link_entry.get()),
+            command=lambda: self.generate_gr(self.link_entry.get()),
             highlightthickness=0
         )
         self.canvas.create_window(200, 190, window=self.generate_qr_button)
@@ -64,15 +73,41 @@ class GUI:
     def clear_link(self):
         self.link_entry.delete(0, 'end')
 
-    def generate_gr(self, link_name, link):
-        file_name = link_name + ".png"
-        url = pyqrcode.create(link)
-        url.png(file_name, scale=8)
-
-        image = ImageTk.PhotoImage(Image.open(file_name))
-
-        image_label = tk.Label(image=image)
-
+    def generate_gr(self, link: str):
+        """
+        Generate a QR code image from the provided link and display it on the canvas.
+        :param link: The URL to encode in the QR code.
+        """
+        if not link:
+            logging.warning("No link provided.")
+            messagebox.showwarning("Warning", "No link provided.")
+            return
+        try:
+            # Create a QR code object from the provided link using pyqrcode.
+            qr = pyqrcode.create(link)
+        except Exception as e:
+            logging.error(f"Error creating QR code: {e}")
+            messagebox.showerror("Error", f"Error creating QR code: {e}")
+            return
+        # Use an in-memory byte buffer.
+        buffer = io.BytesIO()
+        try:
+            qr.png(buffer, scale=7)  # Render the QR code as a PNG image in the buffer.
+        except Exception as e:
+            logging.error(f"Error generating PNG in buffer: {e}")
+            messagebox.showerror("Error", f"Error generating PNG in buffer: {e}")
+            return
+        buffer.seek(0)  # Reset the buffer pointer to the beginning.
+        try:
+            # Open the image from the buffer and convert it to a Tkinter-compatible image.
+            image = ImageTk.PhotoImage(Image.open(buffer))
+        except Exception as e:
+            logging.error(f"Error converting buffer to PhotoImage: {e}")
+            messagebox.showerror("Error", f"Error converting buffer to PhotoImage: {e}")
+            return
+        # Create a label widget to hold and display the QR code image.
+        image_label = tk.Label(self.canvas, image=image)
+        # Retain a reference to the image to prevent it from being garbage collected.
         image_label.image = image
-
+        # Display the image label on the canvas.
         self.canvas.create_window(200, 450, window=image_label)
