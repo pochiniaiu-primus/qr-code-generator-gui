@@ -1,6 +1,6 @@
 import io
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 import pyqrcode
 from PIL import ImageTk, Image
 import logging
@@ -19,6 +19,7 @@ class GUI:
         self.root.title("QR Code Generator")
         self.root.geometry("500x700")
         self.root.config(padx=10, pady=10)
+        self.qr_data = None
 
         # Create a canvas to place widgets.
         self.canvas = tk.Canvas(self.root, width=400, height=600)
@@ -67,6 +68,12 @@ class GUI:
         )
         self.canvas.create_window(200, 280, window=self.exit_button)
 
+        self.download_button = tk.Button(
+            self.root, text="Download QR Code", width=30,
+            command=lambda: self.save_qr(), highlightthickness=0
+        )
+        self.canvas.create_window(200, 615, window=self.download_button)
+
     def clear_name(self):
         self.name_entry.delete(0, 'end')
 
@@ -97,6 +104,10 @@ class GUI:
             logging.error(f"Error generating PNG in buffer: {e}")
             messagebox.showerror("Error", f"Error generating PNG in buffer: {e}")
             return
+
+        # Store the generated PNG data for later saving.
+        self.qr_data = buffer.getvalue()
+
         buffer.seek(0)  # Reset the buffer pointer to the beginning.
         try:
             # Open the image from the buffer and convert it to a Tkinter-compatible image.
@@ -111,3 +122,29 @@ class GUI:
         image_label.image = image
         # Display the image label on the canvas.
         self.canvas.create_window(200, 450, window=image_label)
+
+    def save_qr(self):
+        """
+        Save the generated QR code image to disk.
+        """
+        if not hasattr(self, 'qr_data') or self.qr_data is None:
+            logging.warning("Please generate a QR code before saving.")
+            messagebox.showwarning("Warning", "Please generate a QR code before saving.")
+            return
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".png",
+            filetypes=[("PNG files", "*.png"), ("All files", "*.*")],
+            title="Save QR Code"
+        )
+
+        if file_path:
+            try:
+                # Write the QR code PNG data to the chosen file.
+                with open(file_path, "wb") as file:
+                    file.write(self.qr_data)
+                logging.info(f"QR Code saved to {file_path}")
+                messagebox.showinfo("Success", f"QR Code successfully saved to {file_path}")
+            except Exception as e:
+                logging.error(f"Error saving QR code: {e}")
+                messagebox.showerror("Error", f"Error saving QR code: {e}")
