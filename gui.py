@@ -132,7 +132,9 @@ class GUI:
             messagebox.showwarning("Warning", "Please generate a QR code before saving.")
             return
 
+        default_name = self.name_entry.get().strip() or "QRCode"
         file_path = filedialog.asksaveasfilename(
+            initialfile=default_name,
             defaultextension=".png",
             filetypes=[("PNG files", "*.png"), ("All files", "*.*")],
             title="Save QR Code"
