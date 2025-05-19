@@ -99,7 +99,7 @@ class GUI:
         # Use an in-memory byte buffer.
         buffer = io.BytesIO()
         try:
-            qr.png(buffer, scale=7)  # Render the QR code as a PNG image in the buffer.
+            qr.png(buffer, scale=4, module_color=[255, 255, 255, 255], background=[22, 56, 83, 255])
         except Exception as e:
             logging.error(f"Error generating PNG in buffer: {e}")
             messagebox.showerror("Error", f"Error generating PNG in buffer: {e}")
