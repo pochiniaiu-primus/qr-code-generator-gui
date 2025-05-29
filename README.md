@@ -9,5 +9,8 @@ users to download it as a PNG file.
 - **QR Code Generation:** Generate QR codes from any valid URL or text input.
 - **Graphical User Interface:** Built using Tkinter.
 - **Download Option:** Save the generated QR code image to your computer.
-- **Logging:** Logs errors and events to a file. 
+- **Logging:** Logs errors and events to a file.
 
+![img.png](img.png)
+
+![img_1.png](img_1.png)
